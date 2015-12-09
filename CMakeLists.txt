@@ -123,7 +123,7 @@ set(nanogui_include_dirs ${glfw_include_dirs} ext/eigen ext/nanovg/src include $
 
 # Run simple C converter to put font files into the data segment
 add_executable(bin2c resources/bin2c.c)
-set(bin2c_cmdline resources.cpp resources.h)
+set(bin2c_cmdline nanogui_resources.cpp nanogui_resources.h)
 file(GLOB resources "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.ttf")
 foreach(file ${resources})
   list(APPEND bin2c_cmdline ${file})
@@ -131,7 +131,7 @@ endforeach()
 
 # Run bin2c on resource files
 add_custom_command(
-  OUTPUT resources.cpp resources.h
+  OUTPUT nanogui_resources.cpp nanogui_resources.h
   COMMAND bin2c ARGS ${bin2c_cmdline}
   DEPENDS bin2c ${resources}
   COMMENT "Running bin2c"
@@ -159,7 +159,7 @@ set(nanogui_src
     # Merge GLEW into the NanoGUI library (only if needed)
     ${LIBNANOGUI_EXTRA_SOURCE}
     # Fonts etc.
-    resources.cpp
+    nanogui_resources.cpp
     include/nanogui/glutil.h src/glutil.cpp
     include/nanogui/common.h src/common.cpp
     include/nanogui/widget.h src/widget.cpp
