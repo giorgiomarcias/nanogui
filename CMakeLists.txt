@@ -188,6 +188,10 @@ set(nanogui_src
     include/nanogui/toolbutton.h
     include/nanogui/opengl.h
     include/nanogui/nanogui.h
+    include/nanogui/serializer/core.h
+    include/nanogui/serializer/opengl.h
+    include/nanogui/serializer/sparse.h
+    src/serializer.cpp
 )
 
 # Compile main NanoGUI library

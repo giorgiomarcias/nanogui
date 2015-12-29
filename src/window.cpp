@@ -14,6 +14,7 @@
 #include <nanogui/opengl.h>
 #include <nanogui/screen_core.h>
 #include <nanogui/layout.h>
+#include <nanogui/serializer/core.h>
 #include <iostream>
 
 NAMESPACE_BEGIN(nanogui)
@@ -177,6 +178,20 @@ bool Window::scrollEvent(const Vector2i &p, const Vector2f &rel) {
 
 void Window::refreshRelativePlacement() {
     /* Overridden in \ref Popup */
+}
+
+void Window::save(Serializer &s) const {
+    Widget::save(s);
+    s.set("title", mTitle);
+    s.set("modal", mModal);
+}
+
+bool Window::load(Serializer &s) {
+    if (!Widget::load(s)) return false;
+    if (!s.get("title", mTitle)) return false;
+    if (!s.get("modal", mModal)) return false;
+    mDrag = false;
+    return true;
 }
 
 NAMESPACE_END(nanogui)

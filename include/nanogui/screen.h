@@ -69,6 +69,11 @@ public:
     void setShutdownGLFWOnDestruct(bool v) { mShutdownGLFWOnDestruct = v; }
     bool shutdownGLFWOnDestruct() { return mShutdownGLFWOnDestruct; }
 
+    /// Compute the layout of all widgets
+    void performLayout() {
+        Widget::performLayout(mNVGContext);
+    }
+
 public:
     /********* API for applications which manage GLFW themselves *********/
 
