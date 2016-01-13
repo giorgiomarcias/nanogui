@@ -162,6 +162,7 @@ set(nanogui_src
     nanogui_resources.cpp
     include/nanogui/glutil.h src/glutil.cpp
     include/nanogui/common.h src/common.cpp
+    include/nanogui/object.h
     include/nanogui/widget.h src/widget.cpp
     include/nanogui/theme.h src/theme.cpp
     include/nanogui/layout.h src/layout.cpp
