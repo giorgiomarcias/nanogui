@@ -27,7 +27,15 @@ Widget::Widget(Widget *parent)
       mCursor(Cursor::Arrow) {
     if (parent) {
         parent->addChild(this);
-        mTheme = parent->mTheme;
+    }
+}
+
+void Widget::setParent(Widget *parent) {
+    mParent = parent;
+    if (mParent) {
+        mTheme = mParent->mTheme;
+        for (auto c : mChildren)
+            c->setTheme(mTheme);
     }
 }
 
