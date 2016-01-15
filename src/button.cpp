@@ -22,6 +22,46 @@ Button::Button(Widget *parent, const std::string &caption, int icon)
       mFlags(NormalButton), mBackgroundColor(Color(0, 0)),
       mTextColor(Color(0, 0)) { }
 
+void Button::toggle() {
+    bool pushedBackup = mPushed;
+    if (mFlags & RadioButton) {
+        if (mButtonGroup.empty()) {
+            for (auto widget : parent()->children()) {
+                Button *b = dynamic_cast<Button *>(widget);
+                if (b != this && b && (b->flags() & RadioButton) && b->mPushed) {
+                    b->mPushed = false;
+                    if (b->mChangeCallback)
+                        b->mChangeCallback(false);
+                }
+            }
+        } else {
+            for (auto b : mButtonGroup) {
+                if (b != this && (b->flags() & RadioButton) && b->mPushed) {
+                    b->mPushed = false;
+                    if (b->mChangeCallback)
+                        b->mChangeCallback(false);
+                }
+            }
+        }
+    }
+    if (mFlags & PopupButton) {
+        for (auto widget : parent()->children()) {
+            Button *b = dynamic_cast<Button *>(widget);
+            if (b != this && b && (b->flags() & PopupButton) && b->mPushed) {
+                b->mPushed = false;
+                if(b->mChangeCallback)
+                    b->mChangeCallback(false);
+            }
+        }
+    }
+    if (mFlags & ToggleButton)
+        mPushed = !mPushed;
+    else
+        mPushed = true;
+    if (pushedBackup != mPushed && mChangeCallback)
+        mChangeCallback(mPushed);
+}
+
 Vector2i Button::preferredSize(NVGcontext *ctx) const {
     int fontSize = mFontSize == -1 ? mTheme->mButtonFontSize : mFontSize;
     nvgFontSize(ctx, fontSize);
@@ -51,53 +91,18 @@ bool Button::mouseButtonEvent(const Vector2i &p, int button, bool down, int modi
     /* Temporarily increase the reference count of the button in case the
        button causes the parent window to be destructed */
     ref<Button> self = this;
-
     if (button == GLFW_MOUSE_BUTTON_1 && mEnabled) {
-        bool pushedBackup = mPushed;
         if (down) {
-            if (mFlags & RadioButton) {
-                if (mButtonGroup.empty()) {
-                    for (auto widget : parent()->children()) {
-                        Button *b = dynamic_cast<Button *>(widget);
-                        if (b != this && b && (b->flags() & RadioButton) && b->mPushed) {
-                            b->mPushed = false;
-                            if (b->mChangeCallback)
-                                b->mChangeCallback(false);
-                        }
-                    }
-                } else {
-                    for (auto b : mButtonGroup) {
-                        if (b != this && (b->flags() & RadioButton) && b->mPushed) {
-                            b->mPushed = false;
-                            if (b->mChangeCallback)
-                                b->mChangeCallback(false);
-                        }
-                    }
-                }
-            }
-            if (mFlags & PopupButton) {
-                for (auto widget : parent()->children()) {
-                    Button *b = dynamic_cast<Button *>(widget);
-                    if (b != this && b && (b->flags() & PopupButton) && b->mPushed) {
-                        b->mPushed = false;
-                        if(b->mChangeCallback)
-                            b->mChangeCallback(false);
-                    }
-                }
-            }
-            if (mFlags & ToggleButton)
-                mPushed = !mPushed;
-            else
-                mPushed = true;
+            toggle();
         } else if (mPushed) {
             if (contains(p) && mCallback)
                 mCallback();
+            bool pushedBackup = mPushed;
             if (mFlags & NormalButton)
                 mPushed = false;
+            if (pushedBackup != mPushed && mChangeCallback)
+                mChangeCallback(mPushed);
         }
-        if (pushedBackup != mPushed && mChangeCallback)
-            mChangeCallback(mPushed);
-
         return true;
     }
     return false;

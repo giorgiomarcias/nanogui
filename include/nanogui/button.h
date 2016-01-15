@@ -55,6 +55,8 @@ public:
     bool pushed() const { return mPushed; }
     void setPushed(bool pushed) { mPushed = pushed; }
 
+    void toggle();
+
     /// Set the push callback (for any type of button)
     std::function<void()> callback() const { return mCallback; }
     void setCallback(const std::function<void()> &callback) { mCallback = callback; }
