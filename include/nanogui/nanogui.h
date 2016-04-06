@@ -22,6 +22,7 @@
 #include <nanogui/checkbox.h>
 #include <nanogui/button.h>
 #include <nanogui/toolbutton.h>
+#include <nanogui/radiobutton.h>
 #include <nanogui/popup.h>
 #include <nanogui/popupbutton.h>
 #include <nanogui/combobox.h>

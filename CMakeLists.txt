@@ -194,6 +194,7 @@ set(nanogui_src
     include/nanogui/colorpicker.h src/colorpicker.cpp
     include/nanogui/graph.h src/graph.cpp
     include/nanogui/formhelper.h
+    include/nanogui/radiobutton.h
     include/nanogui/toolbutton.h
     include/nanogui/opengl.h
     include/nanogui/nanogui.h
