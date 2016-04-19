@@ -41,13 +41,17 @@ public:
     /// Set the label color
     void setColor(const Color& color) { mColor = color; }
 
-    /// Compute the size needed to fully display the label
-    virtual Vector2i preferredSize(NVGcontext *ctx) const;
-    /// Draw the label
-    virtual void draw(NVGcontext *ctx);
+    /// Set the \ref Theme used to draw this widget
+    virtual void setTheme(Theme *theme) override;
 
-    virtual void save(Serializer &s) const;
-    virtual bool load(Serializer &s);
+    /// Compute the size needed to fully display the label
+    virtual Vector2i preferredSize(NVGcontext *ctx) const override;
+
+    /// Draw the label
+    virtual void draw(NVGcontext *ctx) override;
+
+    virtual void save(Serializer &s) const override;
+    virtual bool load(Serializer &s) override;
 protected:
     std::string mCaption;
     std::string mFont;

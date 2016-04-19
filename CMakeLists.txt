@@ -101,11 +101,17 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   endif()
 endif()
 
-if(WIN32)
-  # Build and include GLEW on Windows
-  list(APPEND LIBNANOGUI_EXTRA_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/ext/glew/src/glew.c")
-  set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glew/src/glew.c" PROPERTIES COMPILE_DEFINITIONS GLEW_BUILD)
-  include_directories(ext/glew/include)
+if (WIN32)
+  # Build and include GLAD on Windows
+  list(APPEND LIBNANOGUI_EXTRA_SOURCE
+     "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
+	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/glad/glad.h"
+	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/KHR/khrplatform.h")
+  set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c" PROPERTIES COMPILE_DEFINITIONS GLAD_GLAPI_EXPORT_BUILD)
+  if (MSVC)
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c" PROPERTIES COMPILE_FLAGS "/wd4055 ")
+  endif()
+  include_directories(ext/glad/include)
 endif()
 
 # Required core libraries on various platforms
@@ -360,7 +366,7 @@ else()
   # Create documentation for python plugin (optional target for developers)
   add_custom_target(mkdoc COMMAND
     python3 ${CMAKE_CURRENT_SOURCE_DIR}/ext/pybind11/tools/mkdoc.py
-    -Iinclude -Iext/nanovg/src
+    -Iinclude -Iext/nanovg/src -Iext/eigen -Iext/glfw/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/nanogui/*.h > ${CMAKE_CURRENT_SOURCE_DIR}/python/py_doc.h)
 endif()
 
