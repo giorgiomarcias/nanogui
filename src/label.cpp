@@ -18,11 +18,6 @@ NAMESPACE_BEGIN(nanogui)
 
 Label::Label(Widget *parent, const std::string &caption, const std::string &font, int fontSize)
     : Widget(parent), mCaption(caption), mFont(font) {
-<<<<<<< HEAD
-        mFontSize = fontSize < 0 ? mTheme ? mTheme->mStandardFontSize : 0 : fontSize;
-    if (mTheme)
-        mColor = mTheme->mTextColor;
-=======
     if (mTheme) {
         mFontSize = mTheme->mStandardFontSize;
         mColor = mTheme->mTextColor;
@@ -36,7 +31,6 @@ void Label::setTheme(Theme *theme) {
         mFontSize = mTheme->mStandardFontSize;
         mColor = mTheme->mTextColor;
     }
->>>>>>> wjakob/master
 }
 
 Vector2i Label::preferredSize(NVGcontext *ctx) const {

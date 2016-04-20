@@ -19,14 +19,7 @@
         #define GLFW_INCLUDE_GLCOREARB
     #endif
 #elif defined(_WIN32)
-<<<<<<< HEAD
-    #ifndef GLEW_STATIC
-        #define GLEW_STATIC
-    #endif
-    #include <GL/glew.h>
-=======
     #include <glad/glad.h>
->>>>>>> wjakob/master
 #else
     #define GL_GLEXT_PROTOTYPES
 #endif

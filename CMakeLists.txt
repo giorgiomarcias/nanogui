@@ -366,7 +366,7 @@ else()
   # Create documentation for python plugin (optional target for developers)
   add_custom_target(mkdoc COMMAND
     python3 ${CMAKE_CURRENT_SOURCE_DIR}/ext/pybind11/tools/mkdoc.py
-    -Iinclude -Iext/nanovg/src -Iext/eigen -Iext/glfw/include
+    -Iinclude -Iext/nanovg/src -Iext/eigen -I${glfw_include_dirs}
     ${CMAKE_CURRENT_SOURCE_DIR}/include/nanogui/*.h > ${CMAKE_CURRENT_SOURCE_DIR}/python/py_doc.h)
 endif()
 

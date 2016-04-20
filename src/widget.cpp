@@ -27,8 +27,6 @@ Widget::Widget(Widget *parent)
       mCursor(Cursor::Arrow) {
     if (parent)
         parent->addChild(this);
-<<<<<<< HEAD
-    }
 }
 
 void Widget::setParent(Widget *parent) {
@@ -38,8 +36,6 @@ void Widget::setParent(Widget *parent) {
         for (auto c : mChildren)
             c->setTheme(mTheme);
     }
-=======
->>>>>>> wjakob/master
 }
 
 Widget::~Widget() {

@@ -47,7 +47,7 @@ void ScreenCore::init(const Vector2i &s, float pRatio) {
     if (mNVGContext == nullptr)
         throw std::runtime_error("Could not initialize NanoVG!");
 
-    mTheme = new Theme(mNVGContext);
+    setTheme(new Theme(mNVGContext));
     mMousePos = Vector2i::Zero();
     mMouseState = mModifiers = 0;
     mDragActive = false;
@@ -149,6 +149,9 @@ bool ScreenCore::keyboardCharacterEvent(unsigned int codepoint) {
 
 bool ScreenCore::cursorPosCallbackEvent(double x, double y) {
     Vector2i p((int) x, (int) y);
+#if defined(_WIN32)
+    p /= mPixelRatio;
+#endif
     bool ret = false;
     mLastInteraction = std::chrono::steady_clock::now();
     try {
@@ -176,8 +179,6 @@ bool ScreenCore::cursorPosCallbackEvent(double x, double y) {
         std::cerr << "Caught exception in event handler: " << e.what() << std::endl;
         abort();
     }
-
-    return false;
 }
 
 bool ScreenCore::mouseButtonCallbackEvent(int button, int action, int modifiers) {
@@ -228,8 +229,6 @@ bool ScreenCore::mouseButtonCallbackEvent(int button, int action, int modifiers)
         std::cerr << "Caught exception in event handler: " << e.what() << std::endl;
         abort();
     }
-
-    return false;
 }
 
 bool ScreenCore::keyCallbackEvent(int key, int scancode, int action, int mods) {
@@ -270,8 +269,6 @@ bool ScreenCore::scrollCallbackEvent(double x, double y) {
                   << std::endl;
         abort();
     }
-
-    return false;
 }
 
 void ScreenCore::updateFocus(Widget *widget) {

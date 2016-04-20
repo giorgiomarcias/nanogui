@@ -69,13 +69,8 @@ public:
     void setShutdownGLFWOnDestruct(bool v) { mShutdownGLFWOnDestruct = v; }
     bool shutdownGLFWOnDestruct() { return mShutdownGLFWOnDestruct; }
 
-<<<<<<< HEAD
     using ScreenCore::performLayout;
-    
-=======
-    using Widget::performLayout;
 
->>>>>>> wjakob/master
     /// Compute the layout of all widgets
     void performLayout() {
         Widget::performLayout(mNVGContext);
@@ -105,7 +100,6 @@ public:
     bool dropCallbackEvent(int count, const char **filenames);
     bool resizeCallbackEvent(int width, int height);
 
-<<<<<<< HEAD
     /// Reimplementing this for calling glfwSetCursor()
     void setCursorAppearance(int c);
     
@@ -114,16 +108,7 @@ public:
     
     /// Reimplement this anc call glfwGetClipboardString()
     std::string getClipboardString();
-    
-=======
-    /* Internal helper functions */
-    void updateFocus(Widget *widget);
-    void disposeWindow(Window *window);
-    void centerWindow(Window *window);
-    void moveWindowToFront(Window *window);
-    void drawWidgets();
 
->>>>>>> wjakob/master
 protected:
     GLFWwindow *mGLFWWindow;
     GLFWcursor *mCursors[(int) Cursor::CursorCount];
