@@ -12,6 +12,7 @@ set(NANOGUI_EXTRA_LIBS "")
 
 # Platform-dependent files for libnanogui
 set(LIBNANOGUI_EXTRA_SOURCE "")
+set(LIBNANOGUI_PYTHON_EXTRA_SOURCE "")
 
 if(APPLE AND NANOGUI_BUILD_SHARED)
   set(CMAKE_MACOSX_RPATH ON)
@@ -155,10 +156,17 @@ add_custom_command(
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Set library type
-if(NANOGUI_BUILD_SHARED)
+if (NANOGUI_BUILD_SHARED)
   set(NANOGUI_LIBRARY_TYPE "SHARED")
 else()
   set(NANOGUI_LIBRARY_TYPE "STATIC")
+endif()
+
+if (APPLE)
+  # Include coroutine support for running the mainloop in detached mode
+  add_definitions(-DCORO_SJLJ)
+  include_directories(ext/coro)
+  list(APPEND LIBNANOGUI_PYTHON_EXTRA_SOURCE ext/coro/coro.c)
 endif()
 
 set(glfw_obj "")
@@ -299,7 +307,8 @@ if (NANOGUI_BUILD_PYTHON)
   endif()
 
   include_directories("ext/pybind11/include" ${PYTHON_INCLUDE_DIR})
-  add_library(nanogui_python SHARED python/python.cpp python/python.h python/py_doc.h)
+  add_library(nanogui_python SHARED python/python.cpp python/python.h python/py_doc.h
+                                    ${LIBNANOGUI_PYTHON_EXTRA_SOURCE})
   set_target_properties(nanogui_python PROPERTIES OUTPUT_NAME "nanogui")
   target_link_libraries(nanogui_python nanogui ${NANOGUI_EXTRA_LIBS})
 

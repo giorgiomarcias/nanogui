@@ -1,13 +1,13 @@
 /*
     nanogui/screen_core.h -- Top-level widget
- 
+
     This code has been modified by Giorgio Marcias from the original screen.h
     in order to allow for NanoGUI screens to be associated to custom GLFW windows
     having custom callbacks.
 
     A significant redesign of this code was contributed by Christian Schueller.
 
-    NanoGUI was developed by Wenzel Jakob <wenzel@inf.ethz.ch>.
+    NanoGUI was developed by Wenzel Jakob <wenzel.jakob@epfl.ch>.
     The widget drawing code is based on the NanoVG demo application
     by Mikko Mononen.
 
@@ -45,16 +45,16 @@ public:
 
     /// Release all resources
     virtual ~ScreenCore();
-    
+
     /// Release all resources
     void release();
-    
+
     /// Initialize the \ref ScreenCore
     void init(const Vector2i &s, float pRatio);
 
     /// Set the pixel ratio
     void setPixelRatio(float pRatio);
-    
+
     /// Set/get the min time before displaying the tooltips
     void setTooltipDelay(const std::chrono::milliseconds &delay);
     const std::chrono::milliseconds & getTooltipDelay() const;
@@ -104,7 +104,7 @@ public:
     /// Reimplement this anc call glfwGetClipboardString()
     virtual std::string getClipboardString() { return std::string(); }
 
-protected:    
+protected:
     NVGcontext *mNVGContext;
     Cursor mCursor;
     std::vector<Widget *> mFocusPath;
