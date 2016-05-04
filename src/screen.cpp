@@ -64,29 +64,30 @@ static float get_pixel_ratio(GLFWwindow *window) {
 #endif
 }
 Screen::Screen()
-    : ScreenCore(), mGLFWWindow(nullptr), mShutdownGLFWOnDestruct(false), mFullscreen(false) {
+    : ScreenCore(), mGLFWWindow(nullptr),  mBackground(0.3f, 0.3f, 0.32f), mShutdownGLFWOnDestruct(false), mFullscreen(false) {
     memset(mCursors, 0, sizeof(GLFWcursor *) * (int) Cursor::CursorCount);
 }
 
-Screen::Screen(const Vector2i &size, const std::string &caption,
-               bool resizable, bool fullscreen)
-    : ScreenCore(), mGLFWWindow(nullptr), mCaption(caption), mShutdownGLFWOnDestruct(false), mFullscreen(fullscreen) {
+Screen::Screen(const Vector2i &size, const std::string &caption, bool resizable,
+               bool fullscreen, int colorBits, int alphaBits, int depthBits,
+               int stencilBits, int nSamples)
+    : ScreenCore(), mGLFWWindow(nullptr), mBackground(0.3f, 0.3f, 0.32f), mCaption(caption),
+      mShutdownGLFWOnDestruct(false), mFullscreen(fullscreen) {
     memset(mCursors, 0, sizeof(GLFWcursor *) * (int) Cursor::CursorCount);
-    
+
     /* Request a forward compatible OpenGL 3.3 core profile context */
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    /* Request a RGBA8 buffer without MSAA */
-    glfwWindowHint(GLFW_SAMPLES, 16);
-    glfwWindowHint(GLFW_RED_BITS, 8);
-    glfwWindowHint(GLFW_GREEN_BITS, 8);
-    glfwWindowHint(GLFW_BLUE_BITS, 8);
-    glfwWindowHint(GLFW_ALPHA_BITS, 8);
-    glfwWindowHint(GLFW_STENCIL_BITS, 8);
-    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    glfwWindowHint(GLFW_SAMPLES, nSamples);
+    glfwWindowHint(GLFW_RED_BITS, colorBits);
+    glfwWindowHint(GLFW_GREEN_BITS, colorBits);
+    glfwWindowHint(GLFW_BLUE_BITS, colorBits);
+    glfwWindowHint(GLFW_ALPHA_BITS, alphaBits);
+    glfwWindowHint(GLFW_STENCIL_BITS, stencilBits);
+    glfwWindowHint(GLFW_DEPTH_BITS, depthBits);
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
     glfwWindowHint(GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
 
@@ -108,7 +109,7 @@ Screen::Screen(const Vector2i &size, const std::string &caption,
 #if defined(_WIN32)
     if (!gladInitialized) {
         gladInitialized = true;
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
             throw std::runtime_error("Could not initialize GLAD!");
         glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
     }
@@ -302,7 +303,7 @@ void Screen::drawAll() {
     setPixelRatio((float) mFBSize[0] / (float) mSize[0]);
 
     drawContents();
-    
+
     if (mVisible)
         drawWidgets();
 
@@ -328,7 +329,7 @@ bool Screen::resizeCallbackEvent(int, int) {
         return false;
 
     mFBSize = fbSize; mSize = size;
-    
+
     try {
         return resizeEvent(mSize);
     } catch (const std::exception &e) {

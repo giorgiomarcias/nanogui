@@ -39,11 +39,22 @@ void ScreenCore::init(const Vector2i &s, float pRatio) {
     mSize = s;
     mPixelRatio = pRatio;
 
-#ifdef NDEBUG
-    mNVGContext = nvgCreateGL3(NVG_STENCIL_STROKES | NVG_ANTIALIAS);
-#else
-    mNVGContext = nvgCreateGL3(NVG_STENCIL_STROKES | NVG_ANTIALIAS | NVG_DEBUG);
+    /* Detect framebuffer properties and set up compatible NanoVG context */
+    GLint nStencilBits = 0, nSamples = 0;
+    glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+        GL_STENCIL, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, &nStencilBits);
+    glGetIntegerv(GL_SAMPLES, &nSamples);
+
+    int flags = 0;
+    if (nStencilBits >= 8)
+       flags |= NVG_STENCIL_STROKES;
+    if (nSamples <= 1)
+       flags |= NVG_ANTIALIAS;
+#if !defined(NDEBUG)
+    flags |= NVG_DEBUG;
 #endif
+
+    mNVGContext = nvgCreateGL3(flags);
     if (mNVGContext == nullptr)
         throw std::runtime_error("Could not initialize NanoVG!");
 

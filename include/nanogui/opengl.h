@@ -19,6 +19,7 @@
         #define GLFW_INCLUDE_GLCOREARB
     #endif
 #elif defined(_WIN32)
+    #define GLAD_GLAPI_EXPORT
     #include <glad/glad.h>
 #else
     #define GL_GLEXT_PROTOTYPES
