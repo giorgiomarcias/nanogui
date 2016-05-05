@@ -139,9 +139,10 @@ endif()
 
 list(APPEND NANOGUI_EXTRA_INCS
   "${CMAKE_CURRENT_SOURCE_DIR}/ext/eigen"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include"
+  "${glfw_include_dirs}"
   "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
 # Required core libraries on various platforms
@@ -174,9 +175,6 @@ add_custom_command(
   COMMENT "Running bin2c"
   PRE_BUILD VERBATIM)
 
-# Needed to generated files
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 # Set library type
 if (NANOGUI_BUILD_SHARED)
   set(NANOGUI_LIBRARY_TYPE "SHARED")
@@ -186,8 +184,8 @@ endif()
 
 if (APPLE)
   # Include coroutine support for running the mainloop in detached mode
-  add_definitions(-DCORO_SJLJ)
-  include_directories(ext/coro)
+  list(APPEND NANOGUI_EXTRA_INCS "${CMAKE_CURRENT_SOURCE_DIR}/ext/coro")
+  list(APPEND NANOGUI_EXTRA_DEFS -DCORO_SJLJ)
   list(APPEND LIBNANOGUI_PYTHON_EXTRA_SOURCE ext/coro/coro.c)
 endif()
 
@@ -397,9 +395,9 @@ endif()
 get_directory_property(NANOGUI_HAS_PARENT PARENT_DIRECTORY)
 if(NANOGUI_HAS_PARENT)
   # This project is included from somewhere else. Export NANOGUI_EXTRA_LIBS variable
-  set(NANOGUI_EXTRA_LIBS ${NANOGUI_EXTRA_LIBS} PARENT_SCOPE)
-  set(NANOGUI_EXTRA_DEFS ${NANOGUI_EXTRA_DEFS} PARENT_SCOPE)
-  set(NANOGUI_EXTRA_INCS ${NANOGUI_EXTRA_INCS} PARENT_SCOPE)
+  set(NANOGUI_LIBRARIES nanogui ${NANOGUI_EXTRA_LIBS} PARENT_SCOPE)
+  set(NANOGUI_DEFINITIONS ${NANOGUI_EXTRA_DEFS} PARENT_SCOPE)
+  set(NANOGUI_INCLUDE_DIRS ${NANOGUI_EXTRA_INCS} PARENT_SCOPE)
 else()
   # Create documentation for python plugin (optional target for developers)
   add_custom_target(mkdoc COMMAND

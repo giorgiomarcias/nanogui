@@ -22,7 +22,9 @@
     #include <glad/glad.h>
 #else
     #if defined(__APPLE__)
-        #define GLFW_INCLUDE_GLCOREARB
+        #ifndef GLFW_INCLUDE_GLCOREARB
+            #define GLFW_INCLUDE_GLCOREARB
+        #endif
     #else
         #define GL_GLEXT_PROTOTYPES
     #endif
