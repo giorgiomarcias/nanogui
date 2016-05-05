@@ -14,15 +14,18 @@
 
 #include <nanogui/common.h>
 
-#if defined(__APPLE__)
-    #ifndef GLFW_INCLUDE_GLCOREARB
-        #define GLFW_INCLUDE_GLCOREARB
+#if defined(NANOGUI_GLAD)
+    #if defined(NANOGUI_SHARED) && !defined(GLAD_GLAPI_EXPORT)
+        #define GLAD_GLAPI_EXPORT
     #endif
-#elif defined(_WIN32)
-    #define GLAD_GLAPI_EXPORT
+
     #include <glad/glad.h>
 #else
-    #define GL_GLEXT_PROTOTYPES
+    #if defined(__APPLE__)
+        #define GLFW_INCLUDE_GLCOREARB
+    #else
+        #define GL_GLEXT_PROTOTYPES
+    #endif
 #endif
 
 #include <GLFW/glfw3.h>

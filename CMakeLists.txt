@@ -2,13 +2,23 @@ cmake_minimum_required (VERSION 2.8.3)
 
 project("NanoGUI")
 
+if (WIN32)
+  set(NANOGUI_USE_GLAD_DEFAULT ON)
+else()
+  set(NANOGUI_USE_GLAD_DEFAULT OFF)
+endif()
+
 option(NANOGUI_BUILD_EXAMPLE "Build NanoGUI example application?" ON)
 option(NANOGUI_BUILD_SHARED  "Build NanoGUI as a shared library?" ON)
 option(NANOGUI_BUILD_PYTHON  "Build a Python plugin for NanoGUI?" ON)
+option(NANOGUI_USE_GLAD      "Build a Python plugin for NanoGUI?" ${NANOGUI_USE_GLAD_DEFAULT})
+
 set(NANOGUI_PYTHON_VERSION "" CACHE STRING "Python version to use for compiling the Python plugin")
 
-# Required libraries for linking against nanogui (all targets)
+# Required libraries, flags, and include files for compiling and linking against nanogui (all targets)
 set(NANOGUI_EXTRA_LIBS "")
+set(NANOGUI_EXTRA_DEFS "")
+set(NANOGUI_EXTRA_INCS "")
 
 # Platform-dependent files for libnanogui
 set(LIBNANOGUI_EXTRA_SOURCE "")
@@ -55,12 +65,12 @@ endif()
 
 # Python support: add NANOGUI_PYTHON flag to all targets
 if (NANOGUI_BUILD_PYTHON)
-  add_definitions ("-DNANOGUI_PYTHON")
+  list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_PYTHON)
 endif()
 
 # Shared library mode: add NANOGUI_SHARED flag to all targets
 if (NANOGUI_BUILD_SHARED)
-  add_definitions ("-DNANOGUI_SHARED")
+  list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_SHARED)
 endif()
 
 if (MSVC)
@@ -102,18 +112,37 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU"
   endif()
 endif()
 
-if (WIN32)
+if (NANOGUI_USE_GLAD)
   # Build and include GLAD on Windows
   list(APPEND LIBNANOGUI_EXTRA_SOURCE
      "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
 	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/glad/glad.h"
 	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/KHR/khrplatform.h")
-  set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c" PROPERTIES COMPILE_DEFINITIONS "GLAD_GLAPI_EXPORT;GLAD_GLAPI_EXPORT_BUILD")
+  if (NANOGUI_BUILD_SHARED)
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
+      PROPERTIES COMPILE_DEFINITIONS "GLAD_GLAPI_EXPORT;GLAD_GLAPI_EXPORT_BUILD")
+  endif()
   if (MSVC)
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c" PROPERTIES COMPILE_FLAGS "/wd4055 ")
+    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
+      PROPERTIES COMPILE_FLAGS "/wd4055 ")
   endif()
   include_directories(ext/glad/include)
+  list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_GLAD)
+  list(APPEND NANOGUI_EXTRA_INCS "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include")
 endif()
+
+if(GLFW_FOUND)
+  set(glfw_include_dirs ${GLFW_INCLUDE_DIRS})
+else()
+  set(glfw_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include)
+endif()
+
+list(APPEND NANOGUI_EXTRA_INCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/ext/eigen"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
 # Required core libraries on various platforms
 if (WIN32)
@@ -128,13 +157,6 @@ elseif (APPLE)
 elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND NANOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
-
-if(GLFW_FOUND)
-  set(glfw_include_dirs ${GLFW_INCLUDE_DIRS})
-else()
-  set(glfw_include_dirs ext/glfw/include)
-endif()
-set(nanogui_include_dirs ${glfw_include_dirs} ext/eigen ext/nanovg/src include ${CMAKE_CURRENT_BINARY_DIR})
 
 # Run simple C converter to put font files into the data segment
 add_executable(bin2c resources/bin2c.c)
@@ -221,7 +243,8 @@ set(nanogui_src
 # Compile main NanoGUI library
 add_library(nanogui ${NANOGUI_LIBRARY_TYPE} ${nanogui_src})
 
-target_include_directories(nanogui PUBLIC ${nanogui_include_dirs})
+target_include_directories(nanogui PUBLIC ${NANOGUI_EXTRA_INCS})
+target_compile_definitions(nanogui PUBLIC ${NANOGUI_EXTRA_DEFS})
 
 # Compile/link flags for NanoGUI
 set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "NANOGUI_BUILD ")
@@ -373,9 +396,10 @@ endif()
 
 get_directory_property(NANOGUI_HAS_PARENT PARENT_DIRECTORY)
 if(NANOGUI_HAS_PARENT)
-  # This project is included from somewhere else. Export NANOGUI_INCLUDE_DIRS and NANOGUI_LIBRARIES variables
-  set(NANOGUI_INCLUDE_DIRS ${nanogui_include_dirs} PARENT_SCOPE)
-  set(NANOGUI_LIBRARIES nanogui ${NANOGUI_EXTRA_LIBS} PARENT_SCOPE)
+  # This project is included from somewhere else. Export NANOGUI_EXTRA_LIBS variable
+  set(NANOGUI_EXTRA_LIBS ${NANOGUI_EXTRA_LIBS} PARENT_SCOPE)
+  set(NANOGUI_EXTRA_DEFS ${NANOGUI_EXTRA_DEFS} PARENT_SCOPE)
+  set(NANOGUI_EXTRA_INCS ${NANOGUI_EXTRA_INCS} PARENT_SCOPE)
 else()
   # Create documentation for python plugin (optional target for developers)
   add_custom_target(mkdoc COMMAND

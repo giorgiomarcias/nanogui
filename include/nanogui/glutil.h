@@ -266,6 +266,52 @@ private:
     int mBindingPoint;
 };
 
+//  ----------------------------------------------------
+
+// Helper class for accumulating uniform buffer data following the 'std140' packing format
+class UniformBufferStd140 : public std::vector<uint8_t> {
+public:
+    typedef std::vector<uint8_t> Parent;
+
+    using Parent::vector;
+    using Parent::push_back;
+
+    template <typename T, typename std::enable_if<std::is_pod<T>::value, int>::type = 0>
+    void push_back(T value) {
+        uint8_t *tmp = (uint8_t*) &value;
+        for (int i = 0; i < sizeof(T); i++)
+            Parent::push_back(tmp[i]);
+    }
+
+    template <typename Derived, typename std::enable_if<Derived::IsVectorAtCompileTime, int>::type = 0>
+    void push_back(const Eigen::MatrixBase<Derived> &value) {
+        const int n = (int) value.size();
+        int i;
+        for (i = 0; i < n; ++i)
+            push_back(value[i]);
+        const int pad = n == 1 ? 1 : (n == 2 ? 2 : 4);
+        while ((i++) % pad != 0)
+            push_back((typename Derived::Scalar) 0);
+    }
+
+    template <typename Derived, typename std::enable_if<!Derived::IsVectorAtCompileTime, int>::type = 0>
+    void push_back(const Eigen::MatrixBase<Derived> &value, bool colMajor = true) {
+        const int n = (int) (colMajor ? value.rows() : value.cols());
+        const int m = (int) (colMajor ? value.cols() : value.rows());
+        const int pad = n == 1 ? 1 : (n == 2 ? 2 : 4);
+
+        for (int i = 0; i < m; ++i) {
+            int j;
+            for (j = 0; j < n; ++j)
+                push_back(colMajor ? value(j, i) : value(i, j));
+            while ((j++) % pad != 0)
+                push_back((typename Derived::Scalar) 0);
+        }
+    }
+};
+
+//  ----------------------------------------------------
+
 /// Helper class for creating framebuffer objects
 class NANOGUI_EXPORT GLFramebuffer {
 public:
