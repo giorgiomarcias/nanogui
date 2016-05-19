@@ -118,10 +118,6 @@ if (NANOGUI_USE_GLAD)
      "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
 	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/glad/glad.h"
 	 "${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include/KHR/khrplatform.h")
-  if (NANOGUI_BUILD_SHARED)
-    set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
-      PROPERTIES COMPILE_DEFINITIONS "GLAD_GLAPI_EXPORT;GLAD_GLAPI_EXPORT_BUILD")
-  endif()
   if (MSVC)
     set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/src/glad.c"
       PROPERTIES COMPILE_FLAGS "/wd4055 ")
@@ -182,7 +178,7 @@ else()
   set(NANOGUI_LIBRARY_TYPE "STATIC")
 endif()
 
-if (APPLE)
+if (APPLE OR CMAKE_SYSTEM MATCHES "Linux")
   # Include coroutine support for running the mainloop in detached mode
   list(APPEND NANOGUI_EXTRA_INCS "${CMAKE_CURRENT_SOURCE_DIR}/ext/coro")
   list(APPEND NANOGUI_EXTRA_DEFS -DCORO_SJLJ)
@@ -245,10 +241,16 @@ target_include_directories(nanogui PUBLIC ${NANOGUI_EXTRA_INCS})
 target_compile_definitions(nanogui PUBLIC ${NANOGUI_EXTRA_DEFS})
 
 # Compile/link flags for NanoGUI
-set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "NANOGUI_BUILD ")
 set_target_properties(nanogui PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED ON)
+
+set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "NANOGUI_BUILD")
+
+if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
+  set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS
+    "GLAD_GLAPI_EXPORT;GLAD_GLAPI_EXPORT_BUILD")
+endif()
 
 if (NANOGUI_BUILD_SHARED)
   target_link_libraries(nanogui ${NANOGUI_EXTRA_LIBS})
@@ -276,7 +278,7 @@ endif()
 
 if(NANOGUI_BUILD_SHARED AND NANOGUI_BUILD_WITH_GLFW)
   # When GLFW is merged into the NanoGUI library, this flag must be specified
-  set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "_GLFW_BUILD_DLL ")
+  set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "_GLFW_BUILD_DLL")
 endif()
 
 if (NANOGUI_BUILD_SHARED AND NOT ${U_CMAKE_BUILD_TYPE} MATCHES DEBUG)
