@@ -147,7 +147,7 @@ public:
         _max = m;
         if (_min > _max)
             _min = _max;
-        if (value() > _min)
+        if (value() > _max)
             setValue(_max);
     }
 
@@ -219,7 +219,7 @@ public:
         _max = m;
         if (_min > _max)
             _min = _max;
-        if (value() > _min)
+        if (value() > _max)
             setValue(_max);
     }
 
