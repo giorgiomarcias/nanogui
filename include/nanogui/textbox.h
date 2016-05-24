@@ -17,6 +17,7 @@
 #include <nanogui/compat.h>
 #include <nanogui/widget.h>
 #include <sstream>
+#include <limits>
 
 NAMESPACE_BEGIN(nanogui)
 
@@ -111,6 +112,8 @@ public:
     IntBox(Widget *parent, Scalar value = (Scalar) 0) : TextBox(parent) {
         setDefaultValue("0");
         setFormat(std::is_signed<Scalar>::value ? "[-]?[0-9]*" : "[0-9]*");
+        _min = std::is_signed<Scalar>::value ? std::numeric_limits<Scalar>::lowest() : Scalar(0);
+        _max = std::numeric_limits<Scalar>::max();
         setValue(value);
     }
 
@@ -123,7 +126,33 @@ public:
     }
 
     void setValue(Scalar value) {
+        if (value < _min || _max < value)
+            return;
         TextBox::setValue(std::to_string(value));
+    }
+
+    void setMinimum(Scalar m) {
+        _min = m;
+        if (_max < _min)
+            _max = _min;
+        if (value() < _min)
+            setValue(_min);
+    }
+
+    Scalar minimum() const {
+        return _min;
+    }
+
+    void setMaximum(Scalar m) {
+        _max = m;
+        if (_min > _max)
+            _min = _max;
+        if (value() > _min)
+            setValue(_max);
+    }
+
+    Scalar maximum() const {
+        return _max;
     }
 
     void setCallback(const std::function<void(Scalar)> &cb) {
@@ -133,12 +162,18 @@ public:
                 Scalar value;
                 if (!(iss >> value))
                     throw std::invalid_argument("Could not parse integer value!");
+                if (value < _min || _max < value)
+                    return false;
                 setValue(value);
                 cb(value);
                 return true;
             }
         );
     }
+
+private:
+    Scalar  _min;
+    Scalar  _max;
 };
 
 template <typename Scalar> class FloatBox : public TextBox {
@@ -147,6 +182,8 @@ public:
         mNumberFormat = sizeof(Scalar) == sizeof(float) ? "%.4g" : "%.7g";
         setDefaultValue("0");
         setFormat("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?");
+        _min = std::is_signed<Scalar>::value ? std::numeric_limits<Scalar>::lowest() : Scalar(0);
+        _max = std::numeric_limits<Scalar>::max();
         setValue(value);
     }
 
@@ -158,14 +195,43 @@ public:
     }
 
     void setValue(Scalar value) {
+        if (value < _min || _max < value)
+            return;
         char buffer[50];
         NANOGUI_SNPRINTF(buffer, 50, mNumberFormat.c_str(), value);
         TextBox::setValue(buffer);
     }
 
+
+    void setMinimum(Scalar m) {
+        _min = m;
+        if (_max < _min)
+            _max = _min;
+        if (value() < _min)
+            setValue(_min);
+    }
+
+    Scalar minimum() const {
+        return _min;
+    }
+
+    void setMaximum(Scalar m) {
+        _max = m;
+        if (_min > _max)
+            _min = _max;
+        if (value() > _min)
+            setValue(_max);
+    }
+
+    Scalar maximum() const {
+        return _max;
+    }
+
     void setCallback(const std::function<void(Scalar)> &cb) {
         TextBox::setCallback([cb, this](const std::string &str) {
             Scalar scalar = (Scalar) std::stod(str);
+            if (scalar < _min || _max < scalar)
+                return false;
             setValue(scalar);
             cb(scalar);
             return true;
@@ -173,6 +239,8 @@ public:
     }
 private:
     std::string mNumberFormat;
+    Scalar  _min;
+    Scalar  _max;
 };
 
 NAMESPACE_END(nanogui)
