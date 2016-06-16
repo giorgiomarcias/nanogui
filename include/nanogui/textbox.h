@@ -159,9 +159,8 @@ public:
         TextBox::setCallback(
             [cb, this](const std::string &str) {
                 std::istringstream iss(str);
-                Scalar value;
-                if (!(iss >> value))
-                    throw std::invalid_argument("Could not parse integer value!");
+                Scalar value = 0;
+                iss >> value;
                 if (value < _min || _max < value)
                     return false;
                 setValue(value);
