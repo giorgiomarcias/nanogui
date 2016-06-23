@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 2.8.3)
 
 project("NanoGUI")
 
+if(POLICY CMP0058)
+  cmake_policy(SET CMP0058 NEW)
+endif()
+
 if (WIN32)
   set(NANOGUI_USE_GLAD_DEFAULT ON)
 else()

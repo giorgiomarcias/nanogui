@@ -56,7 +56,9 @@ public:
         Button *b = new Button(window, "Plain button");
         b->setTooltip(std::string("This is a tooltip"));
         b->setCallback([] { cout << "pushed!" << endl; });
-        b = new Button(window, "Styled", ENTYPO_ICON_ROCKET);
+
+        /* Alternative construction notation using variadic template */
+        b = window->add<Button>("Styled", ENTYPO_ICON_ROCKET);
         b->setBackgroundColor(Color(0, 0, 255, 25));
         b->setCallback([] { cout << "pushed!" << endl; });
 
