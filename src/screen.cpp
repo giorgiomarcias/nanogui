@@ -13,8 +13,8 @@
 
 #include <nanogui/screen.h>
 #include <nanogui/opengl.h>
-#include <iostream>
 #include <map>
+#include <iostream>
 
 #if defined(_WIN32)
 #define NOMINMAX
@@ -348,7 +348,7 @@ void Screen::setCursorAppearance(int c) {
 }
 
 /// Reimplement this anc call glfwSetClipboardString() with the string given by the parameter
-void Screen::setCliboardString(const std::string &str) {
+void Screen::setClipboardString(const std::string &str) {
     glfwSetClipboardString(mGLFWWindow, str.c_str());
 }
 

@@ -8,7 +8,7 @@
 #include "python.h"
 
 #if defined(__APPLE__) || defined(__linux__)
-#include <coro.h>
+#  include <coro.h>
 #endif
 
 using namespace nanogui;
@@ -46,6 +46,9 @@ DECLARE_WIDGET(Graph);
 DECLARE_WIDGET(DoubleBox);
 DECLARE_WIDGET(Int64Box);
 DECLARE_WIDGET(ColorPicker);
+DECLARE_WIDGET(StackedWidget);
+DECLARE_WIDGET(TabHeader);
+DECLARE_WIDGET(TabWidget);
 
 /// Make pybind aware of the ref-counted wrapper type
 PYBIND11_DECLARE_HOLDER_TYPE(T, ref<T>);
@@ -374,12 +377,15 @@ PYBIND11_PLUGIN(nanogui) {
         .def("visibleRecursive", &Widget::visibleRecursive, D(Widget, visibleRecursive))
         .def("children", (std::vector<Widget *>&(Widget::*)(void)) &Widget::children,
              D(Widget, children), py::return_value_policy::reference)
-        .def("addChild", &Widget::addChild, D(Widget, addChild))
+        .def("addChild", (void (Widget::*) (int, Widget *)) &Widget::addChild, D(Widget, addChild))
+        .def("addChild", (void (Widget::*) (Widget *)) &Widget::addChild, D(Widget, addChild, 2))
         .def("childCount", &Widget::childCount, D(Widget, childCount))
         .def("__len__", &Widget::childCount, D(Widget, childCount))
         .def("__iter__", [](const Widget &w) {
                 return py::make_iterator(w.children().begin(), w.children().end());
             }, py::keep_alive<0, 1>())
+        .def("childIndex", &Widget::childIndex, D(Widget, childIndex))
+        .def("__getitem__", (Widget* (Widget::*)(int)) &Widget::childAt, D(Widget, childAt))
         .def("removeChild", (void(Widget::*)(int)) &Widget::removeChild, D(Widget, removeChild))
         .def("removeChild", (void(Widget::*)(const Widget *)) &Widget::removeChild, D(Widget, removeChild, 2))
         .def("window", &Widget::window, D(Widget, window))
@@ -715,6 +721,8 @@ PYBIND11_PLUGIN(nanogui) {
             py::arg("value") = std::string("Untitled"), D(TextBox, TextBox))
         .def("editable", &TextBox::editable, D(TextBox, editable))
         .def("setEditable", &TextBox::setEditable, D(TextBox, setEditable))
+        .def("spinnable", &TextBox::spinnable, D(TextBox, spinnable))
+        .def("setSpinnable", &TextBox::setSpinnable, D(TextBox, setSpinnable))
         .def("value", &TextBox::value, D(TextBox, value))
         .def("setValue", &TextBox::setValue, D(TextBox, setValue))
         .def("defaultValue", &TextBox::defaultValue, D(TextBox, defaultValue))
@@ -740,14 +748,22 @@ PYBIND11_PLUGIN(nanogui) {
         .def("value", &Int64Box::value, D(IntBox, value))
         .def("setValue", (void (Int64Box::*)(int64_t)) &Int64Box::setValue, D(IntBox, setValue))
         .def("setCallback", (void (Int64Box::*)(const std::function<void(int64_t)>&))
-                &Int64Box::setCallback, D(IntBox, setCallback));
+                &Int64Box::setCallback, D(IntBox, setCallback))
+        .def("setValueIncrement", &Int64Box::setValueIncrement/*, D(IntBox, setValueIncrement)*/)
+        .def("setMinValue", &Int64Box::setMinValue/*, D(IntBox, setMinValue)*/)
+        .def("setMaxValue", &Int64Box::setMaxValue/*, D(IntBox, setMaxValue)*/)
+        .def("setMinValue", &Int64Box::setMinMaxValues/*, D(IntBox, setMinMaxValues)*/);
 
     py::class_<DoubleBox, ref<DoubleBox>, PyDoubleBox>(m, "FloatBox", tbox, D(FloatBox))
         .def(py::init<Widget *, double>(), py::arg("parent"), py::arg("value") = 0.0)
         .def("value", &DoubleBox::value, D(FloatBox, value))
-        .def("setValue", (void (DoubleBox::*)(int64_t)) &DoubleBox::setValue, D(FloatBox, setValue))
+        .def("setValue", (void (DoubleBox::*)(double)) &DoubleBox::setValue, D(FloatBox, setValue))
         .def("setCallback", (void (DoubleBox::*)(const std::function<void(double)>&))
-                &DoubleBox::setCallback, D(FloatBox, setCallback));
+                &DoubleBox::setCallback, D(FloatBox, setCallback))
+        .def("setValueIncrement", &DoubleBox::setValueIncrement/*, D(FloatBox, setValueIncrement)*/)
+        .def("setMinValue", &DoubleBox::setMinValue/*, D(FloatBox, setMinValue)*/)
+        .def("setMaxValue", &DoubleBox::setMaxValue/*, D(FloatBox, setMaxValue)*/)
+        .def("setMinValue", &DoubleBox::setMinMaxValues/*, D(FloatBox, setMinMaxValues)*/);
 
     py::class_<ColorWheel, ref<ColorWheel>, PyColorWheel>(m, "ColorWheel", widget, D(ColorWheel))
         .def(py::init<Widget *>(), py::arg("parent"), D(ColorWheel, ColorWheel))
@@ -782,6 +798,46 @@ PYBIND11_PLUGIN(nanogui) {
         .def("setTextColor", &Graph::setTextColor, D(Graph, setTextColor))
         .def("values", (VectorXf &(Graph::*)(void)) &Graph::values, D(Graph, values))
         .def("setValues", &Graph::setValues, D(Graph, setValues));
+
+    py::class_<StackedWidget, ref<StackedWidget>, PyStackedWidget>(m, "StackedWidget", widget, D(StackedWidget))
+        .def(py::init<Widget *>())
+        .def("selectedIndex", &StackedWidget::selectedIndex, D(StackedWidget, selectedIndex))
+        .def("setSelectedIndex", &StackedWidget::setSelectedIndex, D(StackedWidget, setSelectedIndex));
+
+    py::class_<TabHeader, ref<TabHeader>, PyTabHeader>(m, "TabHeader", widget, D(TabHeader))
+        .def(py::init<Widget *, const std::string &>(), D(TabHeader, TabHeader))
+        .def("setFont", &TabHeader::setFont, D(TabHeader, setFont))
+        .def("font", &TabHeader::font, D(TabHeader, font))
+        .def("overflowing", &TabHeader::overflowing, D(TabHeader, overflowing))
+        .def("callback", &TabHeader::callback, D(TabHeader, callback))
+        .def("setCallback", &TabHeader::setCallback, D(TabHeader, setCallback))
+        .def("activeTab", &TabHeader::activeTab, D(TabHeader, activeTab))
+        .def("setActiveTab", &TabHeader::setActiveTab, D(TabHeader, setActiveTab))
+        .def("addTab", (void (TabHeader::*)(const std::string &)) &TabHeader::addTab, D(TabHeader, addTab))
+        .def("addTab", (void (TabHeader::*)(int index, const std::string &)) &TabHeader::addTab, D(TabHeader, addTab, 2))
+        .def("removeTab", (int (TabHeader::*)(const std::string &)) &TabHeader::removeTab, D(TabHeader, removeTab))
+        .def("removeTab", (void (TabHeader::*)(int index)) &TabHeader::removeTab, D(TabHeader, removeTab, 2))
+        .def("tabLabelAt", &TabHeader::tabLabelAt, D(TabHeader, tabLabelAt))
+        .def("tabIndex", &TabHeader::tabIndex, D(TabHeader, tabIndex))
+        .def("ensureTabVisible", &TabHeader::ensureTabVisible, D(TabHeader, ensureTabVisible));
+
+    py::class_<TabWidget, ref<TabWidget>, PyTabWidget>(m, "TabWidget", widget, D(TabWidget))
+        .def(py::init<Widget *>(), D(TabWidget, TabWidget))
+        .def("setActiveTab", &TabWidget::setActiveTab, D(TabWidget, setActiveTab))
+        .def("activeTab", &TabWidget::activeTab, D(TabWidget, activeTab))
+        .def("tabCount", &TabWidget::tabCount, D(TabWidget, tabCount))
+        .def("setCallback", &TabWidget::setCallback, D(TabWidget, setCallback))
+        .def("callback", &TabWidget::callback, D(TabWidget, callback))
+        .def("addTab", (void (TabWidget::*)(const std::string &, Widget *)) &TabWidget::addTab, D(TabWidget, addTab))
+        .def("addTab", (void (TabWidget::*)(int index, const std::string &, Widget *)) &TabWidget::addTab, D(TabWidget, addTab, 2))
+        .def("createTab", (Widget *(TabWidget::*)(const std::string &)) &TabWidget::createTab, D(TabWidget, createTab))
+        .def("createTab", (Widget *(TabWidget::*)(int index, const std::string &)) &TabWidget::createTab, D(TabWidget, createTab, 2))
+        .def("removeTab", (bool (TabWidget::*)(const std::string &)) &TabWidget::removeTab, D(TabWidget, removeTab))
+        .def("removeTab", (void (TabWidget::*)(int index)) &TabWidget::removeTab, D(TabWidget, removeTab, 2))
+        .def("tabLabelAt", &TabWidget::tabLabelAt, D(TabWidget, tabLabelAt))
+        .def("tabIndex", &TabWidget::tabIndex, D(TabWidget, tabIndex))
+        .def("tab", (Widget * (TabWidget::*)(const std::string &)) &TabWidget::tab, D(TabWidget, tab))
+        .def("ensureTabVisible", &TabWidget::ensureTabVisible, D(TabWidget, ensureTabVisible));
 
     enum DummyEnum { };
 

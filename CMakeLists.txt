@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.3)
+cmake_minimum_required (VERSION 2.8.12)
 
 project("NanoGUI")
 
@@ -89,7 +89,7 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE2")
 
     # Disable Eigen vectorization for Windows 32 bit builds (issues with unaligned access segfaults)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DEIGEN_DONT_ALIGN")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DNANOGUI_EIGEN_DONT_ALIGN")
   endif()
 endif()
 
@@ -139,12 +139,16 @@ else()
 endif()
 
 list(APPEND NANOGUI_EXTRA_INCS
-  "${CMAKE_CURRENT_SOURCE_DIR}/ext/eigen"
   "${glfw_include_dirs}"
   "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
   "${CMAKE_CURRENT_SOURCE_DIR}/include"
   "${CMAKE_CURRENT_BINARY_DIR}"
 )
+
+if (NOT NANOGUI_EIGEN_INCLUDE_DIR)
+  set(NANOGUI_EIGEN_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/eigen")
+  list(APPEND NANOGUI_EXTRA_INCS "${NANOGUI_EIGEN_INCLUDE_DIR}")
+endif()
 
 # Required core libraries on various platforms
 if (WIN32)
@@ -159,6 +163,8 @@ elseif (APPLE)
 elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND NANOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl rt)
 endif()
+
+include_directories(${NANOGUI_EIGEN_INCLUDE_DIR} ${glfw_include_dirs} ext/nanovg/src include ${CMAKE_CURRENT_BINARY_DIR})
 
 # Run simple C converter to put font files into the data segment
 add_executable(bin2c resources/bin2c.c)
@@ -228,6 +234,9 @@ set(nanogui_src
     include/nanogui/colorwheel.h src/colorwheel.cpp
     include/nanogui/colorpicker.h src/colorpicker.cpp
     include/nanogui/graph.h src/graph.cpp
+    include/nanogui/stackedwidget.h src/stackedwidget.cpp
+    include/nanogui/tabheader.h src/tabheader.cpp
+    include/nanogui/tabwidget.h src/tabwidget.cpp
     include/nanogui/formhelper.h
     include/nanogui/radiobutton.h
     include/nanogui/toolbutton.h

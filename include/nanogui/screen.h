@@ -155,7 +155,7 @@ public:
     void setCursorAppearance(int c);
     
     /// Reimplement this anc call glfwSetClipboardString() with the string given by the parameter
-    void setCliboardString(const std::string &str);
+    void setClipboardString(const std::string &str);
     
     /// Reimplement this anc call glfwGetClipboardString()
     std::string getClipboardString();
