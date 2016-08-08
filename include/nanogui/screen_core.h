@@ -55,6 +55,10 @@ public:
     /// Set the pixel ratio
     void setPixelRatio(float pRatio);
 
+    /// Return the ratio between pixel and device coordinates (e.g. >= 2 on Mac Retina displays)
+    float pixelRatio() const { return mPixelRatio; }
+
+
     /// Set/get the min time before displaying the tooltips
     void setTooltipDelay(const std::chrono::milliseconds &delay);
     const std::chrono::milliseconds & getTooltipDelay() const;

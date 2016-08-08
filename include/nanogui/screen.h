@@ -153,10 +153,10 @@ public:
 
     /// Reimplementing this for calling glfwSetCursor()
     void setCursorAppearance(int c);
-    
+
     /// Reimplement this anc call glfwSetClipboardString() with the string given by the parameter
     void setClipboardString(const std::string &str);
-    
+
     /// Reimplement this anc call glfwGetClipboardString()
     std::string getClipboardString();
 
