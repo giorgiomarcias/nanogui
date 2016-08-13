@@ -323,7 +323,8 @@ void Screen::drawAll() {
 #endif
 
     glViewport(0, 0, mFBSize[0], mFBSize[1]);
-    setPixelRatio((float) mFBSize[0] / (float) mSize[0]);
+    if (mSize[0])
+        setPixelRatio((float) mFBSize[0] / (float) mSize[0]);
 
     drawContents();
 
