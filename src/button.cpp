@@ -49,7 +49,7 @@ void Button::toggle() {
             Button *b = dynamic_cast<Button *>(widget);
             if (b != this && b && (b->flags() & PopupButton) && b->mPushed) {
                 b->mPushed = false;
-                if(b->mChangeCallback)
+                if (b->mChangeCallback)
                     b->mChangeCallback(false);
             }
         }
