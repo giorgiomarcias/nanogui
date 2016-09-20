@@ -58,6 +58,22 @@ static float get_pixel_ratio(GLFWwindow *window) {
             return std::round(dpiX / 96.0);
     }
     return 1.f;
+#elif defined(__linux__)
+    (void) window;
+
+    /* Try to read the pixel ratio from GTK */
+    FILE *fp = popen("gsettings get org.gnome.desktop.interface scaling-factor", "r");
+    if (!fp)
+        return 1;
+
+    int ratio = 1;
+    if (fscanf(fp, "uint32 %i", &ratio) != 1)
+        return 1;
+
+    if (pclose(fp) != 0)
+        return 1;
+
+    return ratio;
 #else
     Vector2i fbSize, size;
     glfwGetFramebufferSize(window, &fbSize[0], &fbSize[1]);
@@ -67,7 +83,7 @@ static float get_pixel_ratio(GLFWwindow *window) {
 }
 
 Screen::Screen()
-    : ScreenCore(), mGLFWWindow(nullptr),  mBackground(0.3f, 0.3f, 0.32f), mShutdownGLFWOnDestruct(false), mFullscreen(false) {
+    : ScreenCore(), mGLFWWindow(nullptr),  mBackground(0.3f, 0.3f, 0.32f, 1.f), mShutdownGLFWOnDestruct(false), mFullscreen(false) {
     memset(mCursors, 0, sizeof(GLFWcursor *) * (int) Cursor::CursorCount);
 }
 
@@ -75,7 +91,7 @@ Screen::Screen(const Vector2i &size, const std::string &caption, bool resizable,
                bool fullscreen, int colorBits, int alphaBits, int depthBits,
                int stencilBits, int nSamples,
                unsigned int glMajor, unsigned int glMinor)
-    : ScreenCore(), mGLFWWindow(nullptr), mBackground(0.3f, 0.3f, 0.32f), mCaption(caption),
+    : ScreenCore(), mGLFWWindow(nullptr), mBackground(0.3f, 0.3f, 0.32f, 1.f), mCaption(caption),
       mShutdownGLFWOnDestruct(false), mFullscreen(fullscreen) {
     memset(mCursors, 0, sizeof(GLFWcursor *) * (int) Cursor::CursorCount);
 
@@ -125,7 +141,7 @@ Screen::Screen(const Vector2i &size, const std::string &caption, bool resizable,
     glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
     mSize = size;
     glViewport(0, 0, mFBSize[0], mFBSize[1]);
-    glClearColor(mBackground[0], mBackground[1], mBackground[2], 1.0f);
+    glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glfwSwapInterval(0);
     glfwSwapBuffers(mGLFWWindow);
@@ -241,7 +257,7 @@ void Screen::initialize(GLFWwindow *window, bool shutdownGLFWOnDestruct) {
 
     mPixelRatio = get_pixel_ratio(window);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     if (mPixelRatio != 1 && !mFullscreen)
         glfwSetWindowSize(window, mSize.x() * mPixelRatio, mSize.y() * mPixelRatio);
 #endif
@@ -258,7 +274,6 @@ void Screen::initialize(GLFWwindow *window, bool shutdownGLFWOnDestruct) {
     init(mSize, get_pixel_ratio(window));
 
     mVisible = glfwGetWindowAttrib(window, GLFW_VISIBLE) != 0;
-    mBackground = Vector3f(0.3f, 0.3f, 0.32f);
     __nanogui_screens[mGLFWWindow] = this;
 
     for (int i=0; i < (int) Cursor::CursorCount; ++i)
@@ -296,7 +311,7 @@ void Screen::setCaption(const std::string &caption) {
 void Screen::setSize(const Vector2i &size) {
     Widget::setSize(size);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     glfwSetWindowSize(mGLFWWindow, size.x() * mPixelRatio, size.y() * mPixelRatio);
 #else
     glfwSetWindowSize(mGLFWWindow, size.x(), size.y());
@@ -304,12 +319,12 @@ void Screen::setSize(const Vector2i &size) {
 }
 
 void Screen::drawAll() {
-    glClearColor(mBackground[0], mBackground[1], mBackground[2], 1.0f);
+    glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glfwMakeContextCurrent(mGLFWWindow);
     float newPixelRatio = get_pixel_ratio(mGLFWWindow);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     if (mPixelRatio != newPixelRatio && !mFullscreen)
         glfwSetWindowSize(mGLFWWindow, mSize.x() * newPixelRatio / mPixelRatio, mSize.y() * newPixelRatio / mPixelRatio);
 #endif
@@ -318,7 +333,7 @@ void Screen::drawAll() {
     glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
     glfwGetWindowSize(mGLFWWindow, &mSize[0], &mSize[1]);
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     mSize /= mPixelRatio;
 #endif
 
@@ -345,7 +360,8 @@ bool Screen::resizeCallbackEvent(int, int) {
     Vector2i fbSize, size;
     glfwGetFramebufferSize(mGLFWWindow, &fbSize[0], &fbSize[1]);
     glfwGetWindowSize(mGLFWWindow, &size[0], &size[1]);
-#if defined(_WIN32)
+
+#if defined(_WIN32) || defined(__linux__)
     size /= mPixelRatio;
 #endif
 

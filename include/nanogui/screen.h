@@ -91,10 +91,10 @@ public:
     void setCaption(const std::string &caption);
 
     /// Return the screen's background color
-    const Vector3f &background() const { return mBackground; }
+    const Color &background() const { return mBackground; }
 
     /// Set the screen's background color
-    void setBackground(const Vector3f &background) { mBackground = background; }
+    void setBackground(const Color &background) { mBackground = background; }
 
     /// Set the top-level window visibility (no effect on full-screen windows)
     void setVisible(bool visible);
@@ -167,7 +167,7 @@ protected:
     GLFWwindow *mGLFWWindow;
     GLFWcursor *mCursors[(int) Cursor::CursorCount];
     Vector2i mFBSize;
-    Vector3f mBackground;
+    Color mBackground;
     std::string mCaption;
     bool mShutdownGLFWOnDestruct;
     bool mFullscreen;
