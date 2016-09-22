@@ -322,14 +322,7 @@ void Screen::drawAll() {
     glClearColor(mBackground[0], mBackground[1], mBackground[2], mBackground[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glfwMakeContextCurrent(mGLFWWindow);
-    float newPixelRatio = get_pixel_ratio(mGLFWWindow);
 
-#if defined(_WIN32) || defined(__linux__)
-    if (mPixelRatio != newPixelRatio && !mFullscreen)
-        glfwSetWindowSize(mGLFWWindow, mSize.x() * newPixelRatio / mPixelRatio, mSize.y() * newPixelRatio / mPixelRatio);
-#endif
-
-    mPixelRatio = newPixelRatio;
     glfwGetFramebufferSize(mGLFWWindow, &mFBSize[0], &mFBSize[1]);
     glfwGetWindowSize(mGLFWWindow, &mSize[0], &mSize[1]);
 
